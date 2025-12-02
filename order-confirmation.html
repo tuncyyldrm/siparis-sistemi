@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Web sitemiz, otomotiv ve ağır vasıta kontak yedek parçalarını B2B olarak satın alabileceğiniz kolay ve güvenilir bir platform sunar. Hızlı arama ve geniş ürün yelpazesi ile ihtiyaç duyduğunuz parçayı hemen bulun!">
+ 
+    <title>Sipariş Onayı</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .order-details p {
+            margin: 0;
+        }
+        .order-items {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .order-items th, .order-items td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .order-items th {
+            background-color: #f4f4f4;
+        }
+        .total-price {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+				background-color: white;		
+				
+            }
+            .btn {
+                display: none; /* Yazdırılırken butonları gizler */
+            }
+            .container {
+                box-shadow: none; /* Yazdırılırken kutu gölgesini kaldırır */
+                padding: 0;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sipariş Onayı</h1>
+        <div class="order-details">
+            <p><strong>Müşteri Kodu:</strong> <br> <span id="username"></span></p>
+            <p><strong>Cari:</strong> <br> <span id="cari"></span></p>
+            <p><strong>Ad Soyad:</strong> <br> <span id="fullname"></span></p>
+            <p><strong>Telefon:</strong> <br> <span id="phone"></span></p>
+            <p><strong>E-posta:</strong> <br> <span id="email"></span></p>
+            <p><strong>Adres:</strong> <br> <span id="address"></span></p>
+            <p><strong>Mesaj:</strong> <br> <span id="message"></span></p>
+            <p><strong>Ödeme Tipi:</strong> <br> <span id="paymentType"></span></p>
+            <p><strong>Sipariş Tarihi ve Saati:</strong> <br> <span id="orderDateTime"></span></p>
+        </div>
+        <h2>Sipariş İçeriği</h2>
+        <table class="order-items">
+            <thead>
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Miktar</th>
+                    <th>Fiyat</th>
+                </tr>
+            </thead>
+            <tbody id="orderItems">
+                <!-- Sipariş ürünleri buraya eklenecek -->
+            </tbody>
+        </table>
+        <p class="total-price">Toplam Fiyat: <span id="totalPrice"></span></p>
+        <button class="btn" id="printBtn">Yazdır</button>
+        <a href="./" class="btn">Ana Sayfaya Dön</a>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sipariş verilerini URL'den al
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get('username');
+            const cari = params.get('cari');
+            const fullname = params.get('fullname');
+            const phone = params.get('phone');
+            const email = params.get('email');
+            const address = params.get('address');
+            const message = params.get('message');
+            const paymentType = params.get('paymentType');
+            const cartItems = JSON.parse(params.get('cartItems'));
+            const totalPrice = parseFloat(params.get('totalPrice'));
+
+            // Sipariş tarihi ve saatini al
+            const now = new Date();
+            const orderDateTime = now.toLocaleString('tr-TR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            });
+
+            // Verileri sayfaya yerleştir
+            document.getElementById('username').textContent = username;
+            document.getElementById('cari').textContent = cari;
+            document.getElementById('fullname').textContent = fullname;
+            document.getElementById('phone').textContent = phone;
+            document.getElementById('email').textContent = email;
+            document.getElementById('address').textContent = address;
+            document.getElementById('message').textContent = message;
+            document.getElementById('paymentType').textContent = paymentType;
+            document.getElementById('orderDateTime').textContent = orderDateTime;
+
+            // Sipariş ürünlerini listele
+            const orderItemsTable = document.getElementById('orderItems');
+            cartItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.count}</td>
+                    <td>${new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(item.price)}</td>
+                `;
+                orderItemsTable.appendChild(row);
+            });
+
+            // Toplam fiyatı göster
+            document.getElementById('totalPrice').textContent = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(totalPrice);
+
+            // Sayfayı yazdır butonuna tıklama olayını dinle
+            document.getElementById('printBtn').addEventListener('click', () => {
+                window.print();
+            });
+        });
+    </script>
+</body>
+</html>

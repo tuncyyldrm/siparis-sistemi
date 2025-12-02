@@ -1,0 +1,20 @@
+{
+  "name": "Yiğit Kontak Sipariş",
+  "short_name": "Yiğit Kontak Sipariş",
+  "start_url": "/siparis/index.php",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#17599c",
+  "icons": [
+    {
+      "src": "/siparis/icons/kontaksiparisicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/siparis/icons/kontaksiparisicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

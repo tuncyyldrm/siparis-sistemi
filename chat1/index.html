@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Canlı Destek Sohbeti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #chatbox {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: 80%;
+            padding: 8px;
+        }
+        #sendButton {
+            padding: 8px;
+        }
+        .user-message {
+            color: blue;
+        }
+        .admin-message {
+            color: green;
+            font-weight: bold;
+        }
+        #error-message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Canlı Destek Sohbeti</h1>
+    <div id="chatbox" aria-live="polite"></div>
+    <input type="text" id="messageInput" placeholder="Cevabınızı yazın..." required>
+    <button id="sendButton">Gönder</button>
+    <div id="error-message"></div>
+
+    <script>
+        // Kullanıcı adı yerine oturumdan al
+        const username = "<?php echo $_SESSION['user']['username']; ?>";
+
+        document.getElementById('sendButton').addEventListener('click', function () {
+    const message = document.getElementById('messageInput').value.trim();
+    const errorMessage = document.getElementById('error-message');
+    errorMessage.textContent = '';
+
+    if (message.length > 0) {
+        const sendButton = document.getElementById('sendButton');
+        sendButton.disabled = true;
+
+        fetch('send_message.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ağ yanıtı başarılı değil: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            sendButton.disabled = false;
+            if (data.success) {
+                document.getElementById('messageInput').value = '';
+                loadMessages(); // Mesaj gönderildikten sonra mesajları yükle
+            } else {
+                errorMessage.textContent = data.message;
+            }
+        })
+        .catch(error => {
+			console.error('Hata:', error);
+			errorMessage.textContent = 'Mesaj gönderilirken bir hata oluştu! Hata: ' + error.message; // Hata mesajını göster
+			sendButton.disabled = false;
+		});
+
+    } else {
+        errorMessage.textContent = "Mesaj eksik!";
+    }
+});
+
+
+        function loadMessages() {
+            fetch('get_messages.php')
+            .then(response => response.json())
+            .then(messages => {
+                const chatbox = document.getElementById('chatbox');
+                chatbox.innerHTML = '';
+                messages.forEach(msg => {
+                    const messageElement = document.createElement('div');
+                    messageElement.textContent = `[${msg.created_at}] ${msg.username}: ${msg.message}`;
+                    if (msg.role === 'admin') {
+                        messageElement.classList.add('admin-message');
+                    } else {
+                        messageElement.classList.add('user-message');
+                    }
+                    chatbox.appendChild(messageElement);
+                });
+                chatbox.scrollTop = chatbox.scrollHeight; // Scroll'u en alta kaydır
+            })
+            .catch(error => console.error('Hata:', error));
+        }
+
+        setInterval(loadMessages, 2000); // Mesajları belirli aralıklarla yükle
+    </script>
+</body>
+</html>
