@@ -18,36 +18,36 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
-        extensions: mbstring, pdo, pdo_mysql
 
-    - name: Install Composer dependencies (if composer.json exists)
+    - name: Install Composer dependencies (if exists)
       run: |
         if [ -f "composer.json" ]; then
           composer install
         else
-          echo "composer.json bulunamadı, bu adım atlandı."
+          echo "composer.json bulunamadı."
         fi
 
-    - name: Start PHP server
+    - name: Start PHP server (root directory)
       run: |
-        php -S localhost:8080 -t public/ > server.log 2>&1 &
+        php -S localhost:8080 > server.log 2>&1 &
         sleep 3
+        echo "PHP server started on http://localhost:8080"
 
     - name: Install ngrok
       run: |
         sudo apt-get update
         sudo apt-get install -y unzip
-        wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-        unzip ngrok-stable-linux-amd64.zip
+        wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
+        unzip ngrok.zip
         chmod +x ngrok
 
-    - name: Start ngrok tunnel
+    - name: Start ngrok tunnel and show URL
       run: |
         ./ngrok http 8080 > ngrok.log 2>&1 &
-        sleep 6
-        echo "NGROK URL:"
-        grep -o "https://[a-zA-Z0-9.-]*\.ngrok-free\.app" ngrok.log || echo "URL bulunamadı"
+        sleep 8
+        echo "====== NGROK URL ======"
+        cat ngrok.log | grep -o "https://[a-zA-Z0-9.-]*\.ngrok-free\.app" | head -n 1 || echo "URL alınamadı."
 
-    - name: Show server logs (debug)
+    - name: Show server log (debug)
       if: always()
       run: cat server.log
