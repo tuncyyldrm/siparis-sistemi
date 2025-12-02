@@ -1,0 +1,53 @@
+name: PHP Preview with Ngrok
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, pdo, pdo_mysql
+
+    - name: Install Composer dependencies (if composer.json exists)
+      run: |
+        if [ -f "composer.json" ]; then
+          composer install
+        else
+          echo "composer.json bulunamadı, bu adım atlandı."
+        fi
+
+    - name: Start PHP server
+      run: |
+        php -S localhost:8080 -t public/ > server.log 2>&1 &
+        sleep 3
+
+    - name: Install ngrok
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip
+        wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+        unzip ngrok-stable-linux-amd64.zip
+        chmod +x ngrok
+
+    - name: Start ngrok tunnel
+      run: |
+        ./ngrok http 8080 > ngrok.log 2>&1 &
+        sleep 6
+        echo "NGROK URL:"
+        grep -o "https://[a-zA-Z0-9.-]*\.ngrok-free\.app" ngrok.log || echo "URL bulunamadı"
+
+    - name: Show server logs (debug)
+      if: always()
+      run: cat server.log
